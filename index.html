@@ -33,7 +33,7 @@
   nav a{text-decoration:none;font-weight:500;font-size:.95rem;color:var(--muted);transition:color .2s}
   nav a:hover{color:var(--pink)}
   #theme{background:none;border:1px solid var(--line);color:var(--ink);border-radius:999px;width:36px;height:36px;cursor:pointer;font-size:1rem}
-  @media(max-width:640px){nav ul li:nth-child(-n+2){display:none}}
+  .wave path{...;animation:waveMove 10s linear infinite;will-change:transform}
    
   /* hero */
   .hero{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:40px}
