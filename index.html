@@ -36,6 +36,24 @@
   @media(max-width:640px){nav ul li:nth-child(-n+2){display:none}}
    
   /* hero */
+  .hero{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:40px}
+.term-wrap{position:relative;z-index:2;perspective:1000px}
+.term{background:#1a0b24;border:1px solid rgba(255,179,217,.25);border-radius:18px;overflow:hidden;color:#ffd9ec;
+  font-family:ui-monospace,'Cascadia Code',Consolas,'Courier New',monospace;font-size:.88rem;
+  box-shadow:0 30px 70px -20px color-mix(in srgb,var(--pink) 60%,transparent);transform:rotateY(-6deg) rotateX(3deg)}
+.term-bar{display:flex;align-items:center;gap:8px;padding:12px 16px;background:rgba(255,255,255,.06)}
+.term-bar i{width:12px;height:12px;border-radius:50%;background:#ff4fa3}
+.term-bar i:nth-child(2){background:#ffb3d9}.term-bar i:nth-child(3){background:#b9a6ff}
+.term-bar span{margin-left:10px;opacity:.7;font-size:.8rem}
+.term-body{height:300px;overflow-y:auto;padding:16px;line-height:1.55}
+.ln{white-space:pre-wrap;word-break:break-word}
+.ln.cmdline{color:#ff7ac0}.ln.hl{color:#fff;font-weight:700}.ln.warn{color:#ffd166}.ln.ok{color:#8affc1}.ln.hint{opacity:.65}
+.term-in{display:flex;gap:10px;align-items:center;padding:12px 16px;border-top:1px solid rgba(255,179,217,.2);cursor:text}
+.term-in span{color:#ff7ac0}
+.term-in input{flex:1;min-width:0;background:none;border:none;outline:none;color:#fff;font:inherit;caret-color:#ff4fa3}
+@media(max-width:900px){.hero{grid-template-columns:1fr}.term{transform:none}.term-body{height:240px}}
+
+
   .hero{position:relative;min-height:100vh;min-height:100svh;display:grid;align-items:center;padding:110px clamp(20px,6vw,80px) 60px;overflow:hidden;background:radial-gradient(900px 600px at 75% 40%,color-mix(in srgb,var(--pink) 22%,transparent),transparent 70%),var(--bg)}
   #gl{position:absolute;inset:0;width:100%;height:100%}
   .hero-copy{position:relative;z-index:2;max-width:640px;pointer-events:none}
@@ -136,7 +154,15 @@
   </nav>
    
   <header class="hero" id="top">
-    <canvas id="gl" aria-hidden="true"></canvas>
+    <div class="term-wrap">
+      <div class="term">
+        <div class="term-bar"><i></i><i></i><i></i><span>khadija@lab:~</span></div>
+        <div class="term-body" id="out" aria-live="polite"></div>
+        <label class="term-in"><span>$</span>
+          <input id="cmd" type="text" autocomplete="off" spellcheck="false" placeholder="type a command, e.g. scan" aria-label="Terminal command">
+        </label>
+      </div>
+    </div>
     <div class="hero-copy">
       <h1>Hi, I’m Khadija Amenhir<span>I learn how attacks work to defend against them.</span></h1>
       <div class="btns">
@@ -291,7 +317,6 @@
   </section>
   <footer>© 2026 khadija amenhir — Built with care and a lot of pink.</footer>
    
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
   // Theme toggle
   (function(){
@@ -312,52 +337,39 @@
     el.addEventListener('mouseleave',function(){el.style.transform=''});
   });
    
-  // Hero 3D scene
-  (function(){
-    if(typeof THREE==='undefined')return;
-    var cv=document.getElementById('gl'),hero=cv.parentElement;
-    var renderer=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:true});
-    renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-    var scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(50,1,.1,100);cam.position.z=7;
-    var group=new THREE.Group();scene.add(group);
-   
-    var knot=new THREE.Mesh(new THREE.TorusKnotGeometry(1.5,.45,180,24),
-      new THREE.MeshStandardMaterial({color:0xff4fa3,metalness:.6,roughness:.25,emissive:0x3a0820}));
-    group.add(knot);
-    var wire=new THREE.Mesh(new THREE.IcosahedronGeometry(2.7,1),
-      new THREE.MeshBasicMaterial({color:0xffb3d9,wireframe:true,transparent:true,opacity:.28}));
-    group.add(wire);
-   
-    var N=500,pos=new Float32Array(N*3);
-    for(var i=0;i<N;i++){var r=3.4+Math.random()*2.6,t=Math.random()*6.283,p=Math.acos(2*Math.random()-1);
-      pos[i*3]=r*Math.sin(p)*Math.cos(t);pos[i*3+1]=r*Math.sin(p)*Math.sin(t);pos[i*3+2]=r*Math.cos(p);}
-    var g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));
-    var pts=new THREE.Points(g,new THREE.PointsMaterial({color:0xffb3d9,size:.045,transparent:true,opacity:.85}));
-    scene.add(pts);
-   
-    scene.add(new THREE.AmbientLight(0xffffff,.55));
-    var l1=new THREE.PointLight(0xff7ac0,2.2,30);l1.position.set(5,4,6);scene.add(l1);
-    var l2=new THREE.PointLight(0xb9a6ff,1.8,30);l2.position.set(-6,-3,4);scene.add(l2);
-   
-    var mx=0,my=0;
-    addEventListener('mousemove',function(e){mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5});
-    function size(){
-      var w=hero.clientWidth,h=hero.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;
-      group.position.x=w>800?2.6:0;group.position.y=w>800?0:-1.6;
-      var s=w>800?1:.7;group.scale.set(s,s,s);cam.updateProjectionMatrix();
-    }
-    addEventListener('resize',size);size();
-   
-    var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches,t0=0;
-    function loop(t){
-      var d=reduce?0:t*.0004;
-      knot.rotation.x=d*1.3+my;knot.rotation.y=d*1.8+mx*1.5;
-      wire.rotation.y=-d;wire.rotation.x=d*.5;pts.rotation.y=d*.3;
-      group.rotation.y+=(mx*.6-group.rotation.y)*.05;group.rotation.x+=(my*.4-group.rotation.x)*.05;
-      renderer.render(scene,cam);requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
-  })();
+ // Hero terminal
+(function(){
+  var out=document.getElementById('out'),cmd=document.getElementById('cmd');
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function line(t,c){var d=document.createElement('div');d.className='ln '+(c||'');d.textContent=t;out.appendChild(d);out.scrollTop=out.scrollHeight;return d}
+  function typeLine(text,done){
+    var d=line('$ ','cmdline'),i=0;
+    (function n(){ if(i<text.length){d.textContent='$ '+text.slice(0,++i);setTimeout(n,reduce?0:55)} else if(done)done() })();
+  }
+  function printLines(arr,done){
+    var k=0;
+    (function n(){ if(k<arr.length){line(arr[k][0],arr[k][1]);k++;setTimeout(n,reduce?0:140)} else if(done)done() })();
+  }
+  var C={
+    help:[["Commands: whoami, projects, skills, scan, contact, clear"]],
+    whoami:[["Khadija Amenhir","hl"],["M1 student at ENSIAS - Cybersecurity, Cloud & Intelligent Systems"],["Location: Casablanca, Morocco"],["Status: still learning, one lab at a time"]],
+    projects:[["[1] mitm-arp-poisoning       Kali, Ettercap, tcpdump"],["[2] pentest-metasploitable    Nmap, Metasploit"],["[3] apache-virtual-hosts      Debian, Apache2"]],
+    skills:[["security : Kali Linux, Nmap, Metasploit, Ettercap, tcpdump"],["cloud    : Proxmox, Nextcloud, VMware, VirtualBox"],["systems  : Debian, Apache2, WordPress"]],
+    scan:[["nmap -sS -p- 192.168.44.128   (isolated lab)","hint"],["PORT     STATE  SERVICE"],["21/tcp   open   ftp      vsftpd 2.3.4","warn"],["22/tcp   open   ssh"],["23/tcp   open   telnet"],["25/tcp   open   smtp"],["80/tcp   open   http"],["3306/tcp open   mysql"],["... about 20 services open","hint"],["Finding: outdated service and weak hardening.","ok"],["Fix: update software, close unused ports.","ok"]],
+    contact:[["email  : you@example.com"],["github : github.com/khadija-amenhir"]]
+  };
+  function run(c){
+    c=c.trim().toLowerCase();if(!c)return;
+    if(c==='clear'){out.innerHTML='';return}
+    typeLine(c,function(){
+      if(C[c])printLines(C[c]);else line('command not found: '+c+'  (type help)','warn');
+    });
+  }
+  cmd.addEventListener('keydown',function(e){if(e.key==='Enter'){var v=cmd.value;cmd.value='';run(v)}});
+  typeLine('whoami',function(){printLines(C.whoami,function(){
+    typeLine('projects',function(){printLines(C.projects,function(){line('Try typing: scan','hint')})});
+  })});
+})();
   //my experience
   document.querySelectorAll('.exp-nav button').forEach(function(b){
   b.addEventListener('click',function(){
